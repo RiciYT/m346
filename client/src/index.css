@@ -1,0 +1,179 @@
+:root {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #1f2933;
+  background-color: #f3f5f7;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background-color: #f3f5f7;
+  color: #1f2933;
+}
+
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #d7dde4;
+}
+
+.header-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+}
+
+.header-inner h1 {
+  margin: 0 0 0.4rem;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.header-inner p {
+  margin: 0;
+  max-width: 58rem;
+  color: #52606d;
+}
+
+.main-content {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 2rem;
+}
+
+.panel {
+  background-color: #ffffff;
+  border: 1px solid #d7dde4;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.tts-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.field label,
+.field-label {
+  font-weight: 600;
+}
+
+textarea,
+select {
+  width: 100%;
+  border: 1px solid #c3ccd5;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #1f2933;
+  padding: 0.75rem 0.85rem;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 9rem;
+}
+
+textarea:focus,
+select:focus,
+.submit-button:focus,
+.example-button:focus {
+  outline: 2px solid #3f6ea5;
+  outline-offset: 2px;
+}
+
+.example-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.example-button {
+  text-align: left;
+  border: 1px solid #cfd7df;
+  border-radius: 6px;
+  background-color: #f8fafb;
+  color: #243b53;
+  padding: 0.7rem 0.8rem;
+  cursor: pointer;
+}
+
+.example-button:hover {
+  background-color: #eef2f6;
+}
+
+.submit-button {
+  justify-self: start;
+  border: 1px solid #365d8d;
+  border-radius: 6px;
+  background-color: #365d8d;
+  color: #ffffff;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+}
+
+.submit-button:hover {
+  background-color: #2f527d;
+}
+
+.submit-button:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.message-panel h2 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.error-panel {
+  border-color: #d8a3a3;
+  background-color: #fff7f7;
+}
+
+.error-panel p {
+  margin: 0;
+  color: #8a1f1f;
+}
+
+.hint {
+  margin: 0;
+  color: #52606d;
+}
+
+.audio-player {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .header-inner,
+  .main-content {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .submit-button {
+    width: 100%;
+    justify-self: stretch;
+  }
+}
