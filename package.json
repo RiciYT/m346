@@ -2,7 +2,7 @@
   "name": "azure-tts-school-project",
   "private": true,
   "version": "1.0.0",
-  "description": "Schulprojekt fuer eine Text-to-Speech Web-App mit Azure Speech und Azure App Service.",
+  "description": "Schulprojekt für eine Text-to-Speech Web-App mit Azure Speech und Azure App Service.",
   "scripts": {
     "postinstall": "npm install --prefix server && npm install --prefix client",
     "dev:server": "npm run dev --prefix server",

@@ -37,19 +37,19 @@ app.post('/api/tts', async (req, res) => {
 
   if (!text) {
     return res.status(400).json({
-      error: 'Bitte sende einen Text fuer die Sprachausgabe.'
+      error: 'Bitte sende einen Text für die Sprachausgabe.'
     });
   }
 
   if (!allowedVoices[voice]) {
     return res.status(400).json({
-      error: 'Die ausgewaehlte Stimme ist nicht erlaubt.'
+      error: 'Die ausgewählte Stimme ist nicht erlaubt.'
     });
   }
 
   if (!process.env.AZURE_SPEECH_KEY || !process.env.AZURE_SPEECH_REGION) {
     return res.status(500).json({
-      error: 'Azure Speech ist nicht konfiguriert. Bitte pruefe die Umgebungsvariablen.'
+      error: 'Azure Speech ist nicht konfiguriert. Bitte prüfe die Umgebungsvariablen.'
     });
   }
 
@@ -81,7 +81,7 @@ if (fs.existsSync(clientDistPath)) {
   app.get('/', (req, res) => {
     res.json({
       message:
-        'Die API laeuft. Fuer das Frontend starte Vite lokal oder fuehre vorher den Client-Build aus.'
+        'Die API läuft. Für das Frontend starte Vite lokal oder führe vorher den Client-Build aus.'
     });
   });
 }
@@ -93,7 +93,7 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server laeuft auf Port ${PORT}`);
+  console.log(`Server läuft auf Port ${PORT}`);
   console.log(
     `Umgebung geladen aus: ${
       loadedEnvFile ? path.basename(loadedEnvFile) : 'Systemvariablen'
