@@ -1,4 +1,51 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import {
+  AudioLinesIcon,
+  CircleAlertIcon,
+  CloudIcon,
+  DownloadIcon,
+  FileTextIcon,
+  MicIcon,
+  PlayIcon,
+  SaveIcon,
+  XIcon
+} from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle
+} from '@/components/ui/empty';
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel
+} from '@/components/ui/field';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 const STORAGE_KEY = 'tts-last-text';
 
@@ -37,33 +84,74 @@ function App() {
   const [audioUrl, setAudioUrl] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [generatedMeta, setGeneratedMeta] = useState(null);
+
+  const trimmedText = text.trim();
+  const selectedVoice = voiceOptions.find((option) => option.value === voice);
+  const selectedExample = exampleTexts.includes(text) ? text : '';
+  const showFieldError = Boolean(error) && !trimmedText;
+  const showRequestError = Boolean(error) && !showFieldError;
+  const statusText = isLoading
+    ? 'Audio wird erstellt'
+    : audioUrl
+      ? 'Audio bereit'
+      : 'Bereit fuer eine Anfrage';
+
+  const detailRows = [
+    {
+      label: 'Status',
+      value: statusText
+    },
+    {
+      label: 'Stimme',
+      value: generatedMeta?.voiceLabel || selectedVoice?.label || '-'
+    },
+    {
+      label: 'Textlaenge',
+      value: `${generatedMeta?.textLength ?? trimmedText.length} Zeichen`
+    }
+  ];
+
+  useEffect(() => {
+    return () => {
+      if (audioUrl) {
+        window.URL.revokeObjectURL(audioUrl);
+      }
+    };
+  }, [audioUrl]);
 
   function updateText(nextText) {
     setText(nextText);
+    setError('');
     window.localStorage.setItem(STORAGE_KEY, nextText);
   }
 
-  function clearAudioUrl() {
+  function clearAudio() {
     if (audioUrl) {
       window.URL.revokeObjectURL(audioUrl);
       setAudioUrl('');
     }
   }
 
+  function resetComposer() {
+    updateText('');
+    clearAudio();
+    setGeneratedMeta(null);
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
 
-    const trimmedText = text.trim();
-
     if (!trimmedText) {
       setError('Bitte gib zuerst einen Text ein.');
-      clearAudioUrl();
+      clearAudio();
+      setGeneratedMeta(null);
       return;
     }
 
     setIsLoading(true);
     setError('');
-    clearAudioUrl();
+    clearAudio();
 
     try {
       const response = await fetch('/api/tts', {
@@ -84,97 +172,198 @@ function App() {
 
       const audioBlob = await response.blob();
       const nextAudioUrl = window.URL.createObjectURL(audioBlob);
+
       setAudioUrl(nextAudioUrl);
+      setGeneratedMeta({
+        textLength: trimmedText.length,
+        voiceLabel: selectedVoice?.label || voice
+      });
     } catch (requestError) {
       setError(requestError.message || 'Netzwerkfehler beim Aufruf der API.');
+      setGeneratedMeta(null);
     } finally {
       setIsLoading(false);
     }
   }
 
   return (
-    <div className="app-shell">
-      <header className="app-header">
-        <div className="header-inner">
-          <h1>Text-to-Speech mit Azure Speech</h1>
-          <p>
-            Eine einfache Web-App fuer ein Schulprojekt. Der eingegebene Text
-            wird im Backend mit Microsoft Azure Speech in Sprache umgewandelt.
-          </p>
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-muted/60">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-5 lg:flex-row lg:items-end lg:justify-between">
+          <h1 className="text-[1.625rem] leading-none font-medium tracking-tight text-foreground">
+            Text-to-Speech mit Azure Speech
+          </h1>
+
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
+            <span className="inline-flex items-center gap-2">
+              <CloudIcon className="size-4" />
+              Azure Speech
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <SaveIcon className="size-4" />
+              Entwurf bleibt lokal gespeichert
+            </span>
+          </div>
         </div>
       </header>
 
-      <main className="main-content">
-        <section className="panel">
-          <form className="tts-form" onSubmit={handleSubmit}>
-            <div className="field">
-              <label htmlFor="text-input">Text</label>
-              <textarea
-                id="text-input"
-                value={text}
-                onChange={(event) => updateText(event.target.value)}
-                placeholder="Gib hier deinen Text ein..."
-                rows="7"
-              />
-            </div>
+      <main className="mx-auto grid max-w-6xl gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(320px,360px)]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Eingabe</CardTitle>
+            <CardDescription>Text eingeben, Stimme waehlen und Audio erzeugen.</CardDescription>
+          </CardHeader>
 
-            <div className="field">
-              <label htmlFor="voice-select">Stimme</label>
-              <select
-                id="voice-select"
-                value={voice}
-                onChange={(event) => setVoice(event.target.value)}
-              >
-                {voiceOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <CardContent className="flex flex-col gap-6">
+            <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+              <FieldGroup>
+                <Field data-invalid={showFieldError || undefined}>
+                  <FieldLabel htmlFor="text-input">Text</FieldLabel>
+                  <Textarea
+                    id="text-input"
+                    value={text}
+                    onChange={(event) => updateText(event.target.value)}
+                    placeholder="Gib hier deinen Text ein..."
+                    aria-invalid={showFieldError || undefined}
+                    className="min-h-64 resize-y"
+                  />
+                  <FieldDescription>
+                    {trimmedText.length} Zeichen. Der letzte Stand bleibt im Browser erhalten.
+                  </FieldDescription>
+                  {showFieldError ? <FieldError>{error}</FieldError> : null}
+                </Field>
 
-            <div className="field">
-              <span className="field-label">Beispieltexte</span>
-              <div className="example-list">
-                {exampleTexts.map((exampleText) => (
-                  <button
-                    key={exampleText}
-                    type="button"
-                    className="example-button"
-                    onClick={() => updateText(exampleText)}
-                  >
-                    {exampleText}
-                  </button>
-                ))}
+                <Field>
+                  <FieldLabel htmlFor="voice-select">Stimme</FieldLabel>
+                  <Select value={voice} onValueChange={setVoice}>
+                    <SelectTrigger id="voice-select" className="w-full">
+                      <SelectValue placeholder="Stimme waehlen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {voiceOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </FieldGroup>
+
+              <Separator />
+
+              <div className="flex flex-col gap-3">
+                <div className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
+                  <FileTextIcon className="size-4 text-muted-foreground" />
+                  Beispieltexte
+                </div>
+                <ToggleGroup
+                  type="single"
+                  value={selectedExample}
+                  onValueChange={(value) => {
+                    if (value) {
+                      updateText(value);
+                    }
+                  }}
+                  className="flex w-full flex-col items-stretch gap-2"
+                >
+                  {exampleTexts.map((exampleText) => (
+                    <ToggleGroupItem
+                      key={exampleText}
+                      value={exampleText}
+                      variant="outline"
+                      className="h-auto w-full justify-start px-3 py-2 text-left whitespace-normal"
+                    >
+                      {exampleText}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
               </div>
+
+              <div className="flex flex-wrap gap-3">
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <Spinner data-icon="inline-start" />
+                  ) : (
+                    <PlayIcon data-icon="inline-start" />
+                  )}
+                  Audio erstellen
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isLoading || !text}
+                  onClick={resetComposer}
+                >
+                  <XIcon data-icon="inline-start" />
+                  Text leeren
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Ausgabe</CardTitle>
+            <CardDescription>Status und letzte erzeugte Audiodatei.</CardDescription>
+          </CardHeader>
+
+          <CardContent className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 text-sm">
+              {detailRows.map((row, index) => (
+                <div key={row.label} className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-muted-foreground">{row.label}</span>
+                    <span className="text-right font-medium text-foreground">{row.value}</span>
+                  </div>
+                  {index < detailRows.length - 1 ? <Separator /> : null}
+                </div>
+              ))}
             </div>
 
-            <button className="submit-button" type="submit" disabled={isLoading}>
-              {isLoading ? 'Audio wird erstellt...' : 'Text in Sprache umwandeln'}
-            </button>
-          </form>
-        </section>
+            {showRequestError ? (
+              <Alert variant="destructive">
+                <CircleAlertIcon />
+                <AlertTitle>Fehler</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : null}
 
-        {error ? (
-          <section className="panel message-panel error-panel" role="alert">
-            <h2>Fehler</h2>
-            <p>{error}</p>
-          </section>
-        ) : null}
+            {audioUrl ? (
+              <div className="flex flex-col gap-4">
+                <audio controls src={audioUrl} className="w-full">
+                  Dein Browser unterstuetzt das Audio-Element nicht.
+                </audio>
+              </div>
+            ) : (
+              <Empty className="border border-dashed border-border/80 py-10">
+                <EmptyHeader>
+                  <EmptyMedia>
+                    <AudioLinesIcon className="size-5 text-muted-foreground" />
+                  </EmptyMedia>
+                  <EmptyTitle>Noch keine Audiodatei</EmptyTitle>
+                  <EmptyDescription>
+                    Nach dem Absenden erscheint hier der Player fuer die erzeugte Ausgabe.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            )}
+          </CardContent>
 
-        <section className="panel message-panel">
-          <h2>Audio</h2>
           {audioUrl ? (
-            <audio controls src={audioUrl} className="audio-player">
-              Dein Browser unterstuetzt das Audio-Element nicht.
-            </audio>
-          ) : (
-            <p className="hint">
-              Nach dem Absenden erscheint hier der Audio-Player mit der
-              generierten Sprachausgabe.
-            </p>
-          )}
-        </section>
+            <CardFooter className="bg-transparent">
+              <Button asChild variant="outline">
+                <a href={audioUrl} download="azure-tts-output.wav">
+                  <DownloadIcon data-icon="inline-start" />
+                  Audio herunterladen
+                </a>
+              </Button>
+            </CardFooter>
+          ) : null}
+        </Card>
       </main>
     </div>
   );
