@@ -4,7 +4,11 @@ const express = require('express');
 const dotenv = require('dotenv');
 const speechsdk = require('microsoft-cognitiveservices-speech-sdk');
 
-dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+const rootEnvPath = path.resolve(__dirname, '..', '.env');
+const exampleEnvPath = path.resolve(__dirname, '..', '.env.example');
+
+const loadedEnvFile =
+  loadEnvironment(rootEnvPath) || loadEnvironment(exampleEnvPath);
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -90,6 +94,16 @@ app.use((req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server laeuft auf Port ${PORT}`);
+  console.log(
+    `Umgebung geladen aus: ${
+      loadedEnvFile ? path.basename(loadedEnvFile) : 'Systemvariablen'
+    }`
+  );
+  console.log(
+    `Azure Speech konfiguriert: ${
+      process.env.AZURE_SPEECH_KEY && process.env.AZURE_SPEECH_REGION ? 'ja' : 'nein'
+    }`
+  );
 });
 
 function synthesizeText(text, voice) {
@@ -128,4 +142,19 @@ function synthesizeText(text, voice) {
       }
     );
   });
+}
+
+function loadEnvironment(envPath) {
+  if (!fs.existsSync(envPath)) {
+    return null;
+  }
+
+  const result = dotenv.config({ path: envPath });
+
+  if (result.error) {
+    console.warn(`Konnte ${path.basename(envPath)} nicht laden:`, result.error);
+    return null;
+  }
+
+  return envPath;
 }
