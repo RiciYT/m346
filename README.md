@@ -151,6 +151,49 @@ Antwort:
 ### Warum ein einzelner App Service ausreicht
 In diesem Projekt ist das Frontend nach dem Build nur noch eine statische Webanwendung. Deshalb kann der Express-Server im Deployment sowohl die API als auch das gebaute React-Frontend ausliefern. Das vereinfacht das Setup fuer ein Schulprojekt deutlich.
 
+### GitHub Actions Workflow
+Im Repository liegt ein Deployment-Workflow unter `.github/workflows/deploy-azure-webapp.yml`.
+
+Er macht bei jedem Push auf den Branch `master` Folgendes:
+1. Root-Abhaengigkeiten installieren
+2. React-Frontend mit Vite bauen
+3. Ein Deploy-Paket mit `client/dist`, `server/` und den benoetigten Root-Dateien vorbereiten
+4. Sich per OIDC bei Azure anmelden
+5. Die Anwendung in eine bestehende Azure Web App deployen
+6. Zum Schluss `/api/health` aufrufen
+
+### Einmalige Azure-Vorbereitung
+Fuer den Workflow muss die Zielumgebung vorher in Azure angelegt werden:
+1. Eine **Azure App Service Web App fuer Linux mit Node.js 20** erstellen
+2. Als Start Command `npm start` setzen
+3. Unter **Environment variables / Application settings** mindestens diese Werte anlegen:
+   - `AZURE_SPEECH_KEY`
+   - `AZURE_SPEECH_REGION`
+
+### GitHub-Konfiguration fuer OIDC
+Der Workflow erwartet folgende GitHub-Secrets:
+- `AZURE_CLIENT_ID`
+- `AZURE_TENANT_ID`
+- `AZURE_SUBSCRIPTION_ID`
+
+Zusätzlich wird mindestens diese GitHub Repository Variable benoetigt:
+- `AZURE_WEBAPP_NAME`
+
+Optional:
+- `AZURE_WEBAPP_URL`
+
+Wenn `AZURE_WEBAPP_URL` nicht gesetzt ist, verwendet der Workflow automatisch:
+
+```text
+https://<AZURE_WEBAPP_NAME>.azurewebsites.net
+```
+
+### OIDC in Azure einrichten
+1. In Azure eine App Registration oder einen Service Principal fuer GitHub Actions verwenden
+2. Eine **Federated Credential** fuer dieses GitHub-Repository anlegen
+3. Als Branch `master` freigeben
+4. Dem Service Principal mindestens Berechtigungen auf die Ziel-Web-App oder die Resource Group geben
+
 ### Moeglicher Ablauf
 1. Neues Azure App Service Web App Projekt fuer Node.js erstellen.
 2. Den Quellcode in ein Git-Repository oder in ein ZIP-Deployment bringen.

@@ -1,0 +1,65 @@
+name: Deploy to Azure Web App
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: azure-webapp-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      NODE_VERSION: '20'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Prepare deployment package
+        run: |
+          rm -rf deploy
+          mkdir -p deploy/client
+          cp package.json package-lock.json deploy/
+          rsync -a server/ deploy/server/
+          rsync -a client/dist/ deploy/client/dist/
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure Web App
+        id: deploy
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_WEBAPP_NAME }}
+          package: deploy
+
+      - name: Health check
+        env:
+          DEFAULT_WEBAPP_URL: https://${{ vars.AZURE_WEBAPP_NAME }}.azurewebsites.net
+          OVERRIDE_WEBAPP_URL: ${{ vars.AZURE_WEBAPP_URL }}
+        run: |
+          APP_URL="${OVERRIDE_WEBAPP_URL:-$DEFAULT_WEBAPP_URL}"
+          curl --fail --silent --show-error "$APP_URL/api/health"
