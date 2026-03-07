@@ -254,7 +254,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 sm:px-6">
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 sm:px-6 lg:h-screen lg:overflow-hidden">
         <header className="border-b py-5">
           <h1 className="text-xl font-semibold text-foreground">Text-to-Speech</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -262,7 +262,7 @@ function App() {
           </p>
         </header>
 
-        <main className="grid flex-1 gap-6 py-6 lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <main className="grid flex-1 gap-6 py-6 lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_360px] lg:overflow-hidden">
           <Card className="border-border/80">
             <CardHeader>
               <div>
@@ -370,8 +370,8 @@ function App() {
             </CardContent>
           </Card>
 
-          <div className="grid gap-6 lg:min-h-0 lg:grid-rows-[auto_1fr]">
-            <Card className="border-border/80">
+          <div className="grid gap-6 lg:min-h-0 lg:grid-rows-[auto_minmax(0,1fr)]">
+            <Card className="border-border/80 lg:flex lg:min-h-0 lg:flex-col">
               <CardHeader>
                 <div>
                   <CardTitle>Aktuelle Datei</CardTitle>
@@ -478,7 +478,7 @@ function App() {
                 </div>
               </CardHeader>
 
-              <CardContent className="flex h-full flex-col gap-3 lg:min-h-0">
+              <CardContent className="flex h-full flex-col gap-3 lg:min-h-0 lg:flex-1 lg:overflow-hidden">
                 {historyError ? (
                   <Alert variant="destructive">
                     <CircleAlertIcon />
@@ -493,7 +493,7 @@ function App() {
                     History wird geladen...
                   </div>
                 ) : historyItems.length > 0 ? (
-                  <div className="flex flex-col gap-1 lg:min-h-0 lg:overflow-auto">
+                  <div className="flex flex-col gap-1 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">
                     {historyItems.map((item) => {
                       const isActive = selectedEntry?.id === item.id;
 
