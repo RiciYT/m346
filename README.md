@@ -1,10 +1,9 @@
-# Text-to-Speech Web-App mit Azure Speech
+# Text-to-Speech Web-App mit React, Express und Azure Speech
 
-## Projektname
-Text-to-Speech Web-App mit React, Express und Microsoft Azure Speech
+Eine Webanwendung, die eingegebenen Text mithilfe von Microsoft Azure Speech in Sprache umwandelt. Entwickelt als Schulprojekt für das Modul M346 (Cloud-Lösungen konzipieren und realisieren).
 
 ## Projektziel
-Dieses Schulprojekt zeigt, wie ein eingegebener Text in einer Webanwendung in Sprache umgewandelt werden kann. Die Benutzeroberfläche wurde bewusst einfach gehalten: Text eingeben, Stimme auswählen, Audio erzeugen und direkt im Browser abspielen.
+Die Benutzeroberfläche ist bewusst einfach gehalten: Text eingeben, Stimme auswählen, Audio erzeugen und direkt im Browser abspielen.
 
 ## Verwendete Azure-Dienste
 - **Azure Speech Service:** Wandelt Text im Backend in Sprachdateien um.
@@ -152,15 +151,12 @@ Antwort:
 In diesem Projekt ist das Frontend nach dem Build nur noch eine statische Webanwendung. Deshalb kann der Express-Server im Deployment sowohl die API als auch das gebaute React-Frontend ausliefern. Das vereinfacht das Setup für ein Schulprojekt deutlich.
 
 ### GitHub Actions Workflow
-Im Repository liegt ein Deployment-Workflow unter `.github/workflows/deploy-azure-webapp.yml`.
+Im Repository liegt ein Deployment-Workflow unter `.github/workflows/master_m346.yml`.
 
 Er macht bei jedem Push auf den Branch `master` Folgendes:
 1. Root-Abhängigkeiten installieren
 2. React-Frontend mit Vite bauen
-3. Ein Deploy-Paket mit `client/dist`, `server/` und den benötigten Root-Dateien vorbereiten
-4. Sich per OIDC bei Azure anmelden
-5. Die Anwendung in eine bestehende Azure Web App deployen
-6. Zum Schluss `/api/health` aufrufen
+3. Anwendung auf Azure Web App deployen
 
 ### Einmalige Azure-Vorbereitung
 Für den Workflow muss die Zielumgebung vorher in Azure angelegt werden:
@@ -170,33 +166,13 @@ Für den Workflow muss die Zielumgebung vorher in Azure angelegt werden:
    - `AZURE_SPEECH_KEY`
    - `AZURE_SPEECH_REGION`
 
-### GitHub-Konfiguration für OIDC
-Der Workflow erwartet folgende GitHub-Secrets:
-- `AZURE_CLIENT_ID`
-- `AZURE_TENANT_ID`
-- `AZURE_SUBSCRIPTION_ID`
-
-Zusätzlich wird mindestens diese GitHub Repository Variable benötigt:
-- `AZURE_WEBAPP_NAME`
-
-Optional:
-- `AZURE_WEBAPP_URL`
-
-Wenn `AZURE_WEBAPP_URL` nicht gesetzt ist, verwendet der Workflow automatisch:
-
-```text
-https://<AZURE_WEBAPP_NAME>.azurewebsites.net
-```
-
-### OIDC in Azure einrichten
-1. In Azure eine App Registration oder einen Service Principal für GitHub Actions verwenden
-2. Eine **Federated Credential** für dieses GitHub-Repository anlegen
-3. Als Branch `master` freigeben
-4. Dem Service Principal mindestens Berechtigungen auf die Ziel-Web-App oder die Resource Group geben
+### GitHub-Konfiguration
+Der Workflow erwartet folgendes GitHub-Secret:
+- `AZUREAPPSERVICE_PUBLISHPROFILE` (Publish Profile der Azure Web App aus dem Azure-Portal)
 
 ### Möglicher Ablauf
 1. Neues Azure App Service Web App Projekt für Node.js erstellen.
-2. Den Quellcode in ein Git-Repository oder in ein ZIP-Deployment bringen.
+2. Publish Profile aus dem Azure-Portal herunterladen und als GitHub-Secret `AZUREAPPSERVICE_PUBLISHPROFILE` hinterlegen.
 3. In Azure App Service die Application Settings setzen:
    - `AZURE_SPEECH_KEY`
    - `AZURE_SPEECH_REGION`
@@ -209,7 +185,7 @@ npm start
 ```
 
 ### Wichtiger Hinweis
-Die Azure-Zugangsdaten gehören **nur** in die Umgebungsvariablen des Backends oder in die App-Service-Konfiguration. Sie dürfen nicht im Frontend hinterlegt werden.
+Die Azure-Zugangsdaten und das Publish Profile gehören **nur** in GitHub-Secrets oder in die App-Service-Konfiguration. Sie dürfen nicht in den Code oder in das Repository eingecheckt werden.
 
 ## Mögliche Erweiterungen
 - weitere Stimmen und Sprachen
